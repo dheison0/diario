@@ -1,0 +1,1 @@
+export const WEBSITE_URL = 'https://www.diarioficialdosmunicipios.org/consulta/ConPublicacaoGeral/ConPublicacaoGeral.php'

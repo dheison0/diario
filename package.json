@@ -1,0 +1,29 @@
+{
+  "name": "diario",
+  "version": "1.0.0",
+  "description": "Bot para extrair informações do Diario dos Municipios e envia-las através do telegram",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dheison0/diario.git"
+  },
+  "keywords": [
+    "crawler",
+    "diario",
+    "bot",
+    "telegram",
+    "brasil"
+  ],
+  "author": "Dheison Gomes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dheison0/diario/issues"
+  },
+  "homepage": "https://github.com/dheison0/diario#readme",
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}
