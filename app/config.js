@@ -1,1 +1,2 @@
 export const WEBSITE_URL = 'https://www.diarioficialdosmunicipios.org/consulta/ConPublicacaoGeral/ConPublicacaoGeral.php'
+export const MIN_RESULTS_PER_PAGE = 10 // O website define que retorna 10 items por vez
