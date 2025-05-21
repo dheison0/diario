@@ -132,6 +132,7 @@ export class Diario {
      */
     async reload() {
         await this.page.reload()
+        await this.page.waitForLoadState("networkidle")
     }
 
     /**
