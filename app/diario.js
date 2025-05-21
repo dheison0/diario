@@ -1,4 +1,4 @@
-import { MIN_RESULTS_PER_PAGE, WEBSITE_URL } from './config.js'
+import { MIN_RESULTS_PER_PAGE, NETWORK_TIMEOUT, WEBSITE_URL } from './config.js'
 
 export class Diario {
     /**
@@ -33,7 +33,7 @@ export class Diario {
             q => Array.from(
                 document.querySelectorAll(q),
                 i => ({ name: i.innerText, value: i.value })
-            ),
+            ).filter(i => i.name.trim() !== ''),
             query + ' > option'
         )
     }
@@ -66,12 +66,18 @@ export class Diario {
         await this.page.selectOption('select[name="nomemunicipio"]', city.value)
     }
 
+    async waitPage() {
+        try {
+            await this.page.waitForLoadState('networkidle', { timeout: NETWORK_TIMEOUT })
+        } catch (e) { }
+    }
+
 
     async getResults() {
         // Carrega os primeiros resultados
         await this.page.click('a#sc_b_pesq_bot')
         await this.page.waitForSelector(this.iframeSelector, { state: "visible" })
-        await this.page.waitForLoadState('networkidle')
+        await this.waitPage()
 
         const loadSearchResults = (iframeSelector) => {
             const rows = document.querySelector(iframeSelector)
@@ -114,8 +120,7 @@ export class Diario {
             if (stop) {
                 break
             }
-            await this.page.waitForLoadState('networkidle')
-            await this.page.waitForTimeout(250)
+            await this.waitPage()
         }
         return Object.values(result)
     }
