@@ -24,3 +24,5 @@ export const showOptions = (options) => {
     console.log(`  Edição: "${options.edition.name}"`)
     console.log("=".repeat(50))
 }
+
+export const delay = ms => new Promise(resolve => setTimeout(resolve, ms))

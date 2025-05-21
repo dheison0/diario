@@ -1,7 +1,9 @@
 import playwright from 'playwright'
 import { Diario } from './diario.js'
-import { findOption, showOptions } from './utils.js'
-import { init as initDB, getLastUsedEdition, setLastUsedEdition, addDoc } from './database.js'
+import { delay, findOption } from './utils.js'
+import { init as initDB, getLastUsedEdition, setLastUsedEdition, addDoc, getDoc } from './database.js'
+import { sendDoc } from './bot.js'
+import { UPDATE_INTERVAL } from './config.js'
 
 async function main() {
     // Inicializa a base das pesquisas
@@ -17,12 +19,11 @@ async function main() {
     }
 
     await updater(jurema, selectedOptions)
-
-    await jurema.close()
-    await browser.close()
+    setInterval(() => updater(jurema, selectedOptions), UPDATE_INTERVAL)
 }
 
 const updater = async (diario, formOptions) => {
+    console.log("Atualizando...")
     await diario.reload()
 
     let { editions } = await diario.getOptions()
@@ -32,16 +33,20 @@ const updater = async (diario, formOptions) => {
     const lastUsedEdition = await getLastUsedEdition(formOptions.city)
     const lastUsedEditionIdx = editions.findIndex((i) => i.value == lastUsedEdition?.value)
     if (lastUsedEditionIdx !== -1) {
-        editions = editions.slice(lastUsedEditionIdx + 1)
+        editions = editions.slice(lastUsedEditionIdx)
     }
 
     for (const edition of editions) {
-        showOptions({ edition, ...formOptions })
+        console.log("Buscando ações...")
         await diario.fillForm({ edition, ...formOptions })
         const results = await diario.getResults()
         setLastUsedEdition(formOptions.city, edition)
-        for(const doc of results) {
+        for (const doc of results) {
+            if(await getDoc(doc.id)) continue
+            console.log("Enviando documento com id=" + doc.id + "...")
             await addDoc(formOptions.city, doc)
+            await sendDoc(formOptions.city, doc)
+            await delay(1500)
         }
     }
 }
