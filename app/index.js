@@ -15,21 +15,37 @@ async function main() {
   // Inicializa a base das pesquisas
   const browser = await playwright.chromium.launch({ headless: true });
   await initDB();
-  const jurema = new Diario(browser);
-  await jurema.open();
-  const options = await jurema.getOptions();
 
-  const selectedOptions = {
-    city: findOption("Jurema", options.cities),
-    entity: findOption("Prefeitura", options.entities),
-  };
+  const cities = { Jurema: {}, "Anisio de Abreu": {}, Caracol: {} };
 
-  await updater(jurema, selectedOptions);
-  setInterval(() => updater(jurema, selectedOptions), UPDATE_INTERVAL);
+  for (const cityName in cities) {
+    console.log(`Iniciando configuração de ${cityName}...`);
+    const diario = new Diario(browser);
+    await diario.open();
+    const options = await diario.getOptions();
+    const selectedOptions = {
+      city: findOption(cityName, options.cities),
+      entity: findOption("Prefeitura", options.entities),
+    };
+    cities[cityName] = { diario, options: selectedOptions };
+  }
+
+  while (true) {
+    for (const city of Object.values(cities)) {
+      try {
+        await updater(city.diario, city.options);
+      } catch (err) {
+        console.log(`Erro na atualização de ${city.options.city.name}`);
+        console.error(err);
+      }
+    }
+    console.log("Esperando para próxima rodada de atualizações...")
+    await delay(UPDATE_INTERVAL);
+  }
 }
 
 const updater = async (diario, formOptions) => {
-  console.log("Atualizando...");
+  console.log(`Atualizando ${formOptions.city.name}...`);
   await diario.reload();
 
   let { editions } = await diario.getOptions();
@@ -50,13 +66,22 @@ const updater = async (diario, formOptions) => {
     const results = await diario.getResults();
     setLastUsedEdition(formOptions.city, edition);
     for (const doc of results) {
-      if (await getDoc(doc.id)) continue;
-      console.log("Enviando documento com id=" + doc.id + "...");
+      if (await getDoc(formOptions.city, doc.id)) continue;
+      console.log(`Enviando documento com id=${doc.id}...`);
       await addDoc(formOptions.city, doc);
-      await sendDoc(formOptions.city, doc);
+      try {
+        await sendDoc(formOptions.city, doc);
+      } catch (err) {
+        console.log("Envio atrasado para mais tarde...");
+        setTimeout(
+          () => sendDoc(formOptions.city, doc),
+          err.response.body.parameters.retry_after * 1200
+        );
+      }
       await delay(1500);
     }
   }
+  console.log("Fim da atualização de "+formOptions.city.name+".")
 };
 
 main();

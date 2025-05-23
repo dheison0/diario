@@ -11,8 +11,7 @@ ${doc.category} - ${city.name}
 ID: \`${doc.id}\`
 Edição: \`${doc.edition} | ${doc.date}\`
 
-[Download externo ↗](${doc.file})
-    `
+[Download externo ↗](${doc.file})`
     .replaceAll("-", "\\-")
     .replaceAll("|", "\\|");
   await bot.sendDocument(CHAT_ID, doc.file, {
