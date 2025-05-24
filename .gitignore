@@ -1,4 +1,6 @@
 bot-db
+.idea
+.vscode
 
 # Logs
 logs
