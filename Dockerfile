@@ -1,6 +1,9 @@
-FROM node:lts-bullseye
-WORKDIR /app
+FROM node:22-slim
+WORKDIR /src
+VOLUME [ "/database" ]
+ENV DB_PATH="/database"
 COPY package*.json ./
-RUN npm install && npx playwright install-deps && npx playwright install chromium
+RUN npm --rm install && npm cache clean --force
+RUN npx --rm playwright install --with-deps --only-shell chromium
 COPY . .
-CMD ["npm", "run", "start"]
+CMD ["node", "app/index.js"]
