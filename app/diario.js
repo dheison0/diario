@@ -18,7 +18,7 @@ export class Diario {
 
   /**
    * Opens a new page and navigates to the website for the Diario dos
-   * Municipios.
+   * Municípios.
    *
    * @throws {Error} If the Diario was already opened.
    *
@@ -26,7 +26,7 @@ export class Diario {
    */
   async open() {
     if (this.page !== undefined) {
-      throw "Diario already opened";
+      throw new Error("Diario already opened");
     }
     this.page = await this.browser.newPage();
     await this.page.goto(WEBSITE_URL);
@@ -67,9 +67,12 @@ export class Diario {
    * @returns {Promise<void>}
    */
   async fillForm({ edition, city, entity }) {
-    await this.page.selectOption('select[name="numedicao"]', edition.value);
-    await this.page.selectOption('select[name="nomeentidade"]', entity.value);
-    await this.page.selectOption('select[name="nomemunicipio"]', city.value);
+    await (await this.page.$('select[name="numedicao"]'))
+      .selectOption({ value: edition.value });
+    await (await this.page.$('select[name="nomeentidade"]'))
+      .selectOption({ value: entity.value });
+    await (await this.page.$('select[name="nomemunicipio"]'))
+      .selectOption({ value: city.value });
   }
 
   async waitPage() {
@@ -77,7 +80,7 @@ export class Diario {
       await this.page.waitForLoadState("networkidle", {
         timeout: NETWORK_TIMEOUT,
       });
-    } catch {}
+    } catch { }
   }
 
   async getResults() {
