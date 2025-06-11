@@ -1,9 +1,11 @@
 import TelegramBot from "node-telegram-bot-api";
-import { BOT_TOKEN, CHAT_ID } from "./config.js";
+import { BOT_TOKEN, CHAT_ID } from "./config";
+import { DiarioDocument, SelectOption } from "./types";
 
 const bot = new TelegramBot(BOT_TOKEN, { polling: false });
 
-export const sendDoc = async (city, doc) => {
+/** Envia um documento para o Telegram */
+export const sendDoc = async (city: SelectOption, doc: DiarioDocument) => {
   const message = `
 ${doc.category} - ${city.name}
 >${doc.document}

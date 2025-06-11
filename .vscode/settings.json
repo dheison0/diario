@@ -12,5 +12,6 @@
         "numedicao",
         "pesq",
         "Publicacao"
-    ]
+    ],
+    "editor.tabSize": 2
 }

@@ -1,6 +1,7 @@
 bot-db
 .idea
 .vscode
+app.bundle.js
 
 # Logs
 logs

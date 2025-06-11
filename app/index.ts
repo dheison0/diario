@@ -10,6 +10,7 @@ import {
 } from "./database.js";
 import { Diario } from "./diario.js";
 import { delay, findOption } from "./utils.js";
+import { FormOptions } from "./types.js";
 
 async function main() {
   // Inicializa a base das pesquisas
@@ -26,18 +27,19 @@ async function main() {
   });
   await initDB();
   const diario = new Diario(browser);
-  await diario.open();
+  await diario.load();
   const options = await diario.getOptions();
 
-  const cities = { Jurema: {}, "Anisio de Abreu": {}, Caracol: {} };
+  const cities = new Map<string, FormOptions>()
 
-  for (const cityName in cities) {
+  for (const cityName in ['Jurema', 'Anisio de Abreu', 'Caracol']) {
     console.log(`Iniciando configuração de ${cityName}...`);
-    const selectedOptions = {
-      city: findOption(cityName, options.cities),
-      entity: findOption("Prefeitura", options.entities),
+    const selectedOptions: FormOptions = {
+      edition: { name: '', value: '' },
+      city: findOption(cityName, options.cities)!,
+      entity: findOption("Prefeitura", options.entities)!,
     };
-    cities[cityName] = selectedOptions;
+    cities.set(cityName, selectedOptions);
   }
 
   while (true) {
@@ -54,7 +56,7 @@ async function main() {
   }
 }
 
-const updater = async (diario, formOptions) => {
+const updater = async (diario: Diario, formOptions: FormOptions) => {
   console.log(`Atualizando ${formOptions.city.name}...`);
   await diario.reload();
 
@@ -72,7 +74,7 @@ const updater = async (diario, formOptions) => {
 
   for (const edition of editions) {
     console.log("Buscando ações...");
-    await diario.fillForm({ edition, ...formOptions });
+    await diario.fillForm({ ...formOptions, edition });
     const results = await diario.getResults();
     setLastUsedEdition(formOptions.city, edition);
     for (const doc of results) {
@@ -81,9 +83,9 @@ const updater = async (diario, formOptions) => {
       await addDoc(formOptions.city, doc);
       try {
         await sendDoc(formOptions.city, doc);
-      } catch (err) {
+      } catch (err: Error | any) {
         let timeout = 10 * 1000;
-        if (err.response) {
+        if (err?.response) {
           console.log("Envio atrasado para mais tarde...");
           timeout = err.response.body.parameters.retry_after * 1200;
         } else {
