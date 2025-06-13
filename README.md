@@ -1,9 +1,9 @@
 # Diario dos Municipios
 
-<center>
-    <img alt="Bandeira do Brasil" height="156" src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" />
-    <b><i>Gigante pela própria natureza!</i></b>
-</center>
+<img alt="Bandeira do Brasil" width="200" src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" />
+
+> Gigante pela própria natureza!</summary>
+>> Uma pena estar cheio de FDP!
 
 Bot do telegram criado especialmente para enviar todos os documentos que são inseridos no Diario Dos Municipios de qualquer cidade do Brasil para um chat especifico do Telegram.
 
