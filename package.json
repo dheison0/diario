@@ -2,10 +2,10 @@
   "name": "diario",
   "version": "1.0.0",
   "description": "Bot para extrair informações do Diario dos Municipios e envia-las através do telegram",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node app.bundle.js"
+    "start": "tsc && node dist/index.js"
   },
   "repository": {
     "type": "git",
