@@ -13,5 +13,16 @@
         "pesq",
         "Publicacao"
     ],
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "eslint.format.enable": true,
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "typescript.format.enable": true,
+    "typescript.format.semicolons": "remove",
+    "javascript.format.enable": true,
+    "javascript.format.semicolons": "remove"
 }

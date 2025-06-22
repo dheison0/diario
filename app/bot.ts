@@ -1,8 +1,8 @@
-import TelegramBot from "node-telegram-bot-api";
-import { BOT_TOKEN, CHAT_ID } from "./config";
-import { DiarioDocument, SelectOption } from "./types";
+import TelegramBot from "node-telegram-bot-api"
+import { BOT_TOKEN, CHAT_ID } from "./config"
+import { DiarioDocument, SelectOption } from "./types"
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: false });
+const bot = new TelegramBot(BOT_TOKEN, { polling: false })
 
 /** Envia um documento para o Telegram */
 export const sendDoc = async (city: SelectOption, doc: DiarioDocument) => {
@@ -15,9 +15,9 @@ Edição: \`${doc.edition} | ${doc.date}\`
 
 [Download externo ↗](${doc.file})`
     .replaceAll("-", "\\-")
-    .replaceAll("|", "\\|");
+    .replaceAll("|", "\\|")
   await bot.sendDocument(CHAT_ID, doc.file, {
     caption: message.trim(),
     parse_mode: "MarkdownV2",
-  });
-};
+  })
+}

@@ -1,12 +1,12 @@
+import { Browser, Page } from "playwright"
 import {
   MIN_RESULTS_PER_PAGE,
   NETWORK_TIMEOUT,
   WEBSITE_URL,
-} from "./config";
-import { Browser, Page } from "playwright";
-import { AvailableOptions, DiarioDocument, FormOptions, SelectOption } from "./types";
+} from "./config"
+import { AvailableOptions, DiarioDocument, FormOptions, SelectOption } from "./types"
 
-const AlreadyOpened = new Error("Website já está aberto!");
+const AlreadyOpened = new Error("Website já está aberto!")
 
 /**
  * Classe responsável pelo controle total da página do Diário dos Municipios
@@ -22,7 +22,7 @@ export class Diario {
    * Inicializa uma nova aba com o controle do website Diario Dos Municipios
   */
   constructor(browser: Browser) {
-    this.browser = browser;
+    this.browser = browser
   }
 
   /**
@@ -32,9 +32,9 @@ export class Diario {
     if (this.page !== null) {
       throw AlreadyOpened
     }
-    this.page = await this.browser.newPage();
-    await this.page.goto(WEBSITE_URL);
-    await this.page.waitForSelector("#SC_data_cond", { state: "hidden" });
+    this.page = await this.browser.newPage()
+    await this.page.goto(WEBSITE_URL)
+    await this.page.waitForSelector("#SC_data_cond", { state: "hidden" })
   }
 
   async _extractOptions(query: string): Promise<SelectOption[]> {
@@ -45,7 +45,7 @@ export class Diario {
           (i) => ({ name: i.innerText, value: i.value, })
         ).filter((i) => i.name.trim() !== ""),
       query + " > option"
-    );
+    )
   }
 
   /**
@@ -56,7 +56,7 @@ export class Diario {
       editions: await this._extractOptions("#SC_numedicao"),
       entities: await this._extractOptions("#SC_nomeentidade"),
       cities: await this._extractOptions("#SC_nomemunicipio"),
-    };
+    }
   }
 
   /**
@@ -68,9 +68,9 @@ export class Diario {
       this.page!.$('select[name="nomeentidade"]'),
       this.page!.$('select[name="nomemunicipio"]')
     ])
-    await editionInput!.selectOption({ value: edition.value });
-    await entityInput!.selectOption({ value: entity.value });
-    await cityInput!.selectOption({ value: city.value });
+    await editionInput!.selectOption({ value: edition.value })
+    await entityInput!.selectOption({ value: entity.value })
+    await cityInput!.selectOption({ value: city.value })
   }
 
   /**
@@ -80,7 +80,7 @@ export class Diario {
     try {
       await this.page!.waitForLoadState("networkidle", {
         timeout: NETWORK_TIMEOUT,
-      });
+      })
     } catch { }
   }
 
@@ -89,18 +89,18 @@ export class Diario {
   */
   async getResults() {
     // Carrega os primeiros resultados
-    await this.page!.click("a#sc_b_pesq_bot");
-    await this.page!.waitForSelector(this.iframeSelector, { state: "visible" });
-    await this.waitPage();
+    await this.page!.click("a#sc_b_pesq_bot")
+    await this.page!.waitForSelector(this.iframeSelector, { state: "visible" })
+    await this.waitPage()
 
     const loadSearchResults = (iframeSelector: string): DiarioDocument[] => {
       const rows = document
         .querySelector<HTMLIFrameElement>(iframeSelector)!
         .contentDocument!.querySelectorAll(
           "tr.scGridFieldEven, tr.scGridFieldOdd"
-        );
+        )
       return Array.from(rows, (i) => {
-        const cells = i.querySelectorAll("td");
+        const cells = i.querySelectorAll("td")
         return {
           id: cells[cells.length - 1].innerText.trim(),
           edition: cells[1].innerText.trim(),
@@ -108,53 +108,53 @@ export class Diario {
           category: cells[6].innerText.trim(),
           document: cells[7].innerText.trim(),
           file: cells[8].querySelector("a")!.href.split("'")[1].trim(),
-        };
-      });
-    };
+        }
+      })
+    }
 
-    const result = new Map<string, DiarioDocument>();
+    const result = new Map<string, DiarioDocument>()
     while (true) {
       const newResults = await this.page!.evaluate(
         loadSearchResults,
         this.iframeSelector
-      );
-      newResults.forEach((i) => result.set(i.id, i));
+      )
+      newResults.forEach((i) => result.set(i.id, i))
       if (newResults.length < MIN_RESULTS_PER_PAGE) {
-        break;
+        break
       }
       // FIXME: Essa função ainda retorna false as vezes mesmo já estando na
       //        última página de resultados.
       // Essa função vai tentar indicar se já chegou ao fim da busca
       const stop = await this.page!.evaluate((i) => {
-        const iframe = document.querySelector<HTMLIFrameElement>(i)!.contentDocument!;
+        const iframe = document.querySelector<HTMLIFrameElement>(i)!.contentDocument!
         if (iframe.querySelector<HTMLImageElement>("img#id_img_forward_bot")!.src.includes("off")) {
-          return true;
+          return true
         }
-        iframe.querySelector<HTMLAnchorElement>("a#forward_bot")!.click();
-        return false;
-      }, this.iframeSelector);
+        iframe.querySelector<HTMLAnchorElement>("a#forward_bot")!.click()
+        return false
+      }, this.iframeSelector)
       if (stop) {
-        break;
+        break
       }
-      await this.waitPage();
+      await this.waitPage()
     }
-    return Object.values(result);
+    return Object.values(result)
   }
 
   /**
    * Recarrega a página para obter novas opções
    */
   async reload() {
-    await this.page!.reload();
-    await this.page!.waitForLoadState("networkidle");
+    await this.page!.reload()
+    await this.page!.waitForLoadState("networkidle")
   }
 
   /**
    * Fecha a aba do navegador
    */
   async close() {
-    if (this.page === null) return;
-    await this.page!.close();
-    this.page = null;
+    if (this.page === null) return
+    await this.page!.close()
+    this.page = null
   }
 }
