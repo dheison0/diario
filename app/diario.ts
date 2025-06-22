@@ -138,7 +138,7 @@ export class Diario {
       }
       await this.waitPage()
     }
-    return Object.values(result)
+    return result.values()
   }
 
   /**
