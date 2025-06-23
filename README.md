@@ -1,11 +1,12 @@
-# Diario dos Municipios
+# Diario Oficial dos Municípios
 
-<img alt="Bandeira do Brasil" width="200" src="https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" />
+<center>
+  <img alt="Bandeira do Brasil" width="200" src="https://www.diarioficialdosmunicipios.org/images/logotipo_dom.svg" />
+</center>
 
-> Gigante pela própria natureza!</summary>
->> Uma pena estar cheio de FDP!
+Bot criado especialmente para enviar os documentos inseridos no Diário Oficial dos Municípios do Piauí para o Telegram e futuramente Instagram!
 
-Bot do telegram criado especialmente para enviar todos os documentos que são inseridos no Diario Dos Municipios de qualquer cidade do Brasil para um chat especifico do Telegram.
+> O Brasil só vai crescer quando o povo souber onde seu dinheiro está "sendo gasto" e cobrar por isso!
 
 # Configuração
 
@@ -27,7 +28,7 @@ npm install
 npx playwright \
     install \
     --with-deps \
-    --only-shell `# Opcional, apenas caso não queria usar a interface gráfica`
+    --only-shell `# Opcional, apenas caso não queria usar a interface gráfica` \
     chromium
 ```
 
@@ -35,14 +36,14 @@ Compile e coloque o projeto para rodar:
 
 ```bash
 npm run build
-node app.bundle.js
+node dist/index.js
 # Ou
 npm run start
 ```
 
 ## Executar com o Docker
 
-Clone o repositório e construia o container:
+Clone o repositório e construa o container:
 
 ```bash
 git clone --depth=1 https://github.com/dheison0/diario
