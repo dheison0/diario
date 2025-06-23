@@ -1,6 +1,6 @@
 import playwright from "playwright"
 import { sendDoc } from "./bot"
-import { UPDATE_INTERVAL } from "./config"
+import { CITIES, SECOND, UPDATE_INTERVAL } from "./config"
 import {
   addDoc,
   getDoc,
@@ -9,8 +9,14 @@ import {
   setLastUsedEdition,
 } from "./database"
 import { Diario } from "./diario"
-import { FormOptions } from "./types"
-import { delay, findOption } from "./utils"
+import { FormOptions, SelectOption } from "./types"
+
+/** Procure pela opção desejada em um array de opções */
+export const findOption = (like: string, options: SelectOption[]) =>
+  options.find((i) => i.name.toLowerCase().match(like.toLowerCase()))
+
+/** Aguarda por um intervalo de tempo */
+export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 async function main() {
   // Inicializa a base das pesquisas
@@ -28,42 +34,72 @@ async function main() {
   await initDB()
   const diario = new Diario(browser)
   await diario.load()
-  const options = await diario.getOptions()
 
-  const cities = new Map<string, FormOptions>()
-
-  for (const cityName of ['Jurema', 'Anisio de Abreu', 'Caracol']) {
-    console.log(`Iniciando configuração de ${cityName}...`)
-    const selectedOptions: FormOptions = {
-      edition: { name: '', value: '' },
-      city: findOption(cityName, options.cities)!,
-      entity: findOption("Prefeitura", options.entities)!,
-    }
-    cities.set(cityName, selectedOptions)
-  }
-
+  const cities = await setupCities(diario)
   while (true) {
     for (const cityOptions of cities.values()) {
       try {
         await updater(diario, cityOptions)
       } catch (err) {
-        console.log(`Erro na atualização de ${cityOptions.city.name}`)
-        console.error(err)
+        console.error(`Erro na atualização de ${cityOptions.city.name}`, err)
       }
     }
-    console.log("Esperando para próxima rodada de atualizações...")
+    console.info("Esperando para próxima rodada de atualizações...")
     await delay(UPDATE_INTERVAL)
   }
 }
 
-const updater = async (diario: Diario, formOptions: FormOptions) => {
-  console.log(`Atualizando ${formOptions.city.name}...`)
-  await diario.reload()
+/** Carrega as opções de cada cidade */
+async function setupCities(diario: Diario): Promise<Map<string, FormOptions>> {
+  const availableOptions = await diario.getOptions()
+  const cities = new Map<string, FormOptions>()
+  for (const cityName of CITIES) {
+    const selectedOptions: FormOptions = {
+      edition: { name: '', value: '' },
+      city: findOption(cityName, availableOptions.cities)!,
+      entity: findOption("Prefeitura", availableOptions.entities)!,
+    }
+    cities.set(cityName, selectedOptions)
+  }
+  return cities
+}
 
+const updater = async (diario: Diario, formOptions: FormOptions) => {
+  console.info(`Atualizando ${formOptions.city.name}...`)
+  await diario.reload()
+  const editions = await getUpdateEditions(diario, formOptions)
+  for (const edition of editions) {
+    console.info(`Buscando ações na edição ${edition.name}...`)
+    await diario.fillForm({ ...formOptions, edition })
+    const results = await diario.getResults()
+    for (const doc of results) {
+      if (await getDoc(formOptions.city, doc.id)) continue
+      console.info(`Enviando documento com id=${doc.id}...`)
+      await addDoc(formOptions.city, doc)
+      try {
+        await sendDoc(formOptions.city, doc)
+      } catch (err: Error | any) {
+        let timeout = 10 * SECOND
+        if (err?.response) {
+          console.warn("Envio atrasado para mais tarde...")
+          timeout = err.response.body.parameters.retry_after * SECOND
+        } else {
+          console.error("Erro desconhecido ao enviar documento", err)
+        }
+        setTimeout(() => sendDoc(formOptions.city, doc), timeout)
+      }
+      setLastUsedEdition(formOptions.city, edition)
+      await delay(1.5 * SECOND)
+    }
+  }
+  console.info(`Fim da atualização de ${formOptions.city.name}.`)
+}
+
+/** Obtém as edições que devem ser atualizadas */
+async function getUpdateEditions(diario: Diario, formOptions: FormOptions) {
   let { editions } = await diario.getOptions()
   editions = editions.slice(0, 10) // limita as edições ate 10
   editions.reverse() // Ordena do mais velho para o mais novo
-
   const lastUsedEdition = await getLastUsedEdition(formOptions.city)
   const lastUsedEditionIdx = editions.findIndex(
     (i) => i.value == lastUsedEdition?.value
@@ -71,34 +107,7 @@ const updater = async (diario: Diario, formOptions: FormOptions) => {
   if (lastUsedEditionIdx !== -1) {
     editions = editions.slice(lastUsedEditionIdx)
   }
-
-  for (const edition of editions) {
-    console.log(`Buscando ações na edição ${edition.name}...`)
-    console.log({ ...formOptions, edition })
-    await diario.fillForm({ ...formOptions, edition })
-    const results = await diario.getResults()
-    console.log(results)
-    setLastUsedEdition(formOptions.city, edition)
-    for (const doc of results) {
-      if (await getDoc(formOptions.city, doc.id)) continue
-      console.log(`Enviando documento com id=${doc.id}...`)
-      await addDoc(formOptions.city, doc)
-      try {
-        await sendDoc(formOptions.city, doc)
-      } catch (err: Error | any) {
-        let timeout = 10 * 1000
-        if (err?.response) {
-          console.log("Envio atrasado para mais tarde...")
-          timeout = err.response.body.parameters.retry_after * 1200
-        } else {
-          console.error("Erro desconhecido ao enviar documento", err)
-        }
-        setTimeout(() => sendDoc(formOptions.city, doc), timeout)
-      }
-      await delay(1500)
-    }
-  }
-  console.log("Fim da atualização de " + formOptions.city.name + ".")
+  return editions
 }
 
 main()

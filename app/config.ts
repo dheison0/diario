@@ -2,13 +2,28 @@ import { config as dotenvConfig } from "dotenv"
 
 dotenvConfig()
 
-const MINUTE = 60 * 1000
+export const SECOND = 1000
+export const MINUTE = 60 * SECOND
 
-export const UPDATE_INTERVAL = 10 * MINUTE
+/** Obtém um valor de uma variável de ambiente */
+function getEnv(name: string, defaultValue?: string): string {
+  const value = process.env[name] || defaultValue
+  if (!value) {
+    throw new Error(`${name} not defined!`)
+  }
+  return value
+}
+
+/* Configurações do website */
 export const WEBSITE_URL =
   "https://www.diarioficialdosmunicipios.org/consulta/ConPublicacaoGeral/ConPublicacaoGeral.php"
-export const NETWORK_TIMEOUT = 2500
-export const MIN_RESULTS_PER_PAGE = 10 // O website define que retorna 10 items por vez
-export const DB_PATH = process.env.DB_PATH || "./bot-db"
-export const BOT_TOKEN = process.env.BOT_TOKEN!
-export const CHAT_ID = process.env.CHAT_ID!
+export const UPDATE_INTERVAL = 10 * MINUTE
+export const NETWORK_TIMEOUT = 2.5 * SECOND
+export const MIN_RESULTS_PER_PAGE = 10 // Por padrão o site retorna 10 resultados por pagina
+export const CITIES = getEnv("CITIES", "Picos|Corrente").split("|")
+export const ENTITIES = getEnv("ENTITIES", "Prefeitura|Camara").split("|")
+
+/* Configurações do bot */
+export const DB_PATH = getEnv("DB_PATH", "./bot-db")
+export const BOT_TOKEN = getEnv("BOT_TOKEN")
+export const CHAT_ID = getEnv("CHAT_ID")
