@@ -64,7 +64,8 @@ async function setupCities(diario: Diario): Promise<Map<string, FormOptions>> {
   return cities
 }
 
-const updater = async (diario: Diario, formOptions: FormOptions) => {
+/** Atualiza uma cidade */
+async function updater(diario: Diario, formOptions: FormOptions) {
   console.info(`Atualizando ${formOptions.city.name}...`)
   await diario.reload()
   const editions = await getUpdateEditions(diario, formOptions)
@@ -73,7 +74,7 @@ const updater = async (diario: Diario, formOptions: FormOptions) => {
     await diario.fillForm({ ...formOptions, edition })
     const results = await diario.getResults()
     for (const doc of results) {
-      if (await getDoc(formOptions.city, doc.id)) continue
+      if (getDoc(formOptions.city, doc.id)) continue
       console.info(`Enviando documento com id=${doc.id}...`)
       await addDoc(formOptions.city, doc)
       try {
@@ -88,7 +89,7 @@ const updater = async (diario: Diario, formOptions: FormOptions) => {
         }
         setTimeout(() => sendDoc(formOptions.city, doc), timeout)
       }
-      setLastUsedEdition(formOptions.city, edition)
+      await setLastUsedEdition(formOptions.city, edition)
       await delay(1.5 * SECOND)
     }
   }
@@ -100,7 +101,7 @@ async function getUpdateEditions(diario: Diario, formOptions: FormOptions) {
   let { editions } = await diario.getOptions()
   editions = editions.slice(0, 10) // limita as edições ate 10
   editions.reverse() // Ordena do mais velho para o mais novo
-  const lastUsedEdition = await getLastUsedEdition(formOptions.city)
+  const lastUsedEdition = getLastUsedEdition(formOptions.city)
   const lastUsedEditionIdx = editions.findIndex(
     (i) => i.value == lastUsedEdition?.value
   )
