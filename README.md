@@ -1,7 +1,7 @@
 # Diario Oficial dos Municípios
 
 <center>
-  <img alt="Bandeira do Brasil" width="200" src="https://www.diarioficialdosmunicipios.org/images/logotipo_dom.svg" />
+  <img width="200" src="https://i.imgur.com/hLrLXkC.png" />
 </center>
 
 Bot criado especialmente para enviar os documentos inseridos no Diário Oficial dos Municípios do Piauí para o Telegram e futuramente Instagram!
