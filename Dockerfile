@@ -6,4 +6,5 @@ COPY package*.json ./
 RUN npm --rm install && npm cache clean --force
 RUN npx --rm playwright install --with-deps --only-shell chromium
 COPY . .
-CMD ["node", "app/index.js"]
+RUN npm run build
+CMD ["node", "dist/index.js"]
