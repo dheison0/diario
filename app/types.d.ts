@@ -17,9 +17,12 @@ export type FormOptions = {
 
 export type DiarioDocument = {
   id: string
-  edition: string
+  edition: SelectOption | null
+  city: SelectOption | null
+  entity: SelectOption | null
   date: string
   category: string
-  document: string
-  file: string // URL de download do PDF
+  description: string
+  url: string // URL de download do PDF
+  sent: boolean
 }

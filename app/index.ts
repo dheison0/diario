@@ -1,12 +1,12 @@
 import playwright from "playwright"
-import { sendDoc } from "./bot"
-import { CITIES, SECOND, UPDATE_INTERVAL } from "./config"
+import { sender } from "./bot"
+import { CITIES, ENTITIES, MINUTE, SECOND, UPDATE_INTERVAL } from "./config"
 import {
-  addDoc,
-  getDoc,
+  getDocument,
   getLastUsedEdition,
   init as initDB,
-  setLastUsedEdition,
+  setDocument,
+  setLastUsedEdition
 } from "./database"
 import { Diario } from "./diario"
 import { FormOptions, SelectOption } from "./types"
@@ -20,6 +20,7 @@ export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve
 
 async function main() {
   // Inicializa a base das pesquisas
+  console.info("Iniciando navegador...")
   const browser = await playwright.chromium.launch({
     headless: true,
     args: [
@@ -31,21 +32,29 @@ async function main() {
       "--disable-renderer-backgrounding",
     ],
   })
-  await initDB()
   const diario = new Diario(browser)
   await diario.load()
+  console.info("Navegador iniciado e pre-carregado.")
 
+  await initDB()
+
+  console.info("Configurando cidades...")
   const cities = await setupCities(diario)
+  console.info("Iniciando atualizações...")
+  setInterval(sender, 2 * MINUTE)
+
   while (true) {
     for (const cityOptions of cities.values()) {
       try {
         await updater(diario, cityOptions)
       } catch (err) {
         console.error(`Erro na atualização de ${cityOptions.city.name}`, err)
+        await delay(10 * SECOND)
       }
     }
     console.info("Esperando para próxima rodada de atualizações...")
     await delay(UPDATE_INTERVAL)
+    await diario.reload()
   }
 }
 
@@ -54,44 +63,41 @@ async function setupCities(diario: Diario): Promise<Map<string, FormOptions>> {
   const availableOptions = await diario.getOptions()
   const cities = new Map<string, FormOptions>()
   for (const cityName of CITIES) {
-    const selectedOptions: FormOptions = {
-      edition: { name: '', value: '' },
-      city: findOption(cityName, availableOptions.cities)!,
-      entity: findOption("Prefeitura", availableOptions.entities)!,
+    for (const entityName of ENTITIES) {
+      cities.set(`${cityName}|${entityName}`, {
+        edition: { name: '', value: '' },
+        city: findOption(cityName, availableOptions.cities)!,
+        entity: findOption(entityName, availableOptions.entities)!,
+      })
     }
-    cities.set(cityName, selectedOptions)
   }
   return cities
 }
 
 /** Atualiza uma cidade */
 async function updater(diario: Diario, formOptions: FormOptions) {
-  console.info(`Atualizando ${formOptions.city.name}...`)
-  await diario.reload()
+  console.info(`Atualizando ${formOptions.entity.name} de ${formOptions.city.name}...`)
   const editions = await getUpdateEditions(diario, formOptions)
   for (const edition of editions) {
     console.info(`Buscando ações na edição ${edition.name}...`)
     await diario.fillForm({ ...formOptions, edition })
     const results = await diario.getResults()
+    let modified = false
     for (const doc of results) {
-      if (getDoc(formOptions.city, doc.id)) continue
-      console.info(`Enviando documento com id=${doc.id}...`)
-      await addDoc(formOptions.city, doc)
-      try {
-        await sendDoc(formOptions.city, doc)
-      } catch (err: Error | any) {
-        let timeout = 10 * SECOND
-        if (err?.response) {
-          console.warn("Envio atrasado para mais tarde...")
-          timeout = err.response.body.parameters.retry_after * SECOND
-        } else {
-          console.error("Erro desconhecido ao enviar documento", err)
-        }
-        setTimeout(() => sendDoc(formOptions.city, doc), timeout)
-      }
-      await setLastUsedEdition(formOptions.city, edition)
-      await delay(1.5 * SECOND)
+      if (getDocument(doc.id)) continue
+      console.info(`Salvando documento id=${doc.id}...`)
+      await setDocument({
+        ...doc, edition,
+        city: formOptions.city,
+        entity: formOptions.entity
+      })
+      modified = true
     }
+    if (modified) {
+      await setLastUsedEdition(formOptions.city, formOptions.entity, edition)
+    }
+    console.log("Esperando um pouco para a próxima edição...")
+    await delay(1 * MINUTE)
   }
   console.info(`Fim da atualização de ${formOptions.city.name}.`)
 }
@@ -101,7 +107,7 @@ async function getUpdateEditions(diario: Diario, formOptions: FormOptions) {
   let { editions } = await diario.getOptions()
   editions = editions.slice(0, 10) // limita as edições ate 10
   editions.reverse() // Ordena do mais velho para o mais novo
-  const lastUsedEdition = getLastUsedEdition(formOptions.city)
+  const lastUsedEdition = getLastUsedEdition(formOptions.city, formOptions.entity)
   const lastUsedEditionIdx = editions.findIndex(
     (i) => i.value == lastUsedEdition?.value
   )

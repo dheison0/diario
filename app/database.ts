@@ -43,12 +43,12 @@ class Storage {
 
   /** Obtém um item do banco de dados */
   getItem<T>(key: string): T {
-    return this.db[key]
+    return structuredClone(this.db[key])
   }
 
   /** Insere um item no banco de dados */
   async setItem(key: string, value: any): Promise<void> {
-    this.db[key] = value
+    this.db[key] = structuredClone(value)
     await this.flush()
   }
 
@@ -56,6 +56,11 @@ class Storage {
   async removeItem(key: string): Promise<void> {
     delete this.db[key]
     await this.flush()
+  }
+
+  /** Encontra chaves que iniciem com um prefixo */
+  findKeysByPrefix(prefix: string): string[] {
+    return Object.keys(this.db).filter((key) => key.startsWith(prefix))
   }
 }
 
@@ -66,14 +71,25 @@ export const init = async () => {
   await storage.load()
 }
 
-export const setLastUsedEdition = async (city: SelectOption, edition: SelectOption) =>
-  await storage.setItem(`@lue:${city.value}`, edition)
+/** Define a última edição usada para uma cidade */
+export const setLastUsedEdition = async (city: SelectOption, entity: SelectOption, edition: SelectOption) =>
+  await storage.setItem(`@lue:${city.value}:${entity.value}`, edition)
 
-export const getLastUsedEdition = (city: SelectOption): SelectOption | undefined =>
-  storage.getItem(`@lue:${city.value}`)
+/** Obtém a última edição usada por uma cidade */
+export const getLastUsedEdition = (city: SelectOption, entity: SelectOption): SelectOption | undefined =>
+  storage.getItem(`@lue:${city.value}:${entity.value}`)
 
-export const addDoc = async (city: SelectOption, doc: DiarioDocument) =>
-  await storage.setItem(`@docs:${city.value}:${doc.id}`, doc)
+/** Adiciona ou atualiza um documento */
+export const setDocument = async (document: DiarioDocument) =>
+  await storage.setItem(`@docs:${document.id}`, document)
 
-export const getDoc = (city: SelectOption, docId: string): DiarioDocument | undefined =>
-  storage.getItem(`@docs:${city.value}:${docId}`)
+/** Obtém um documento */
+export const getDocument = (docId: string): DiarioDocument | undefined =>
+  storage.getItem(`@docs:${docId}`)
+
+/** Remove um documento */
+export const removeDocument = async (docId: string) => await storage.removeItem(`@docs:${docId}`)
+
+/** Obtém todos os documentos */
+export const getAllDocuments = (): DiarioDocument[] =>
+  storage.findKeysByPrefix(`@docs`).map((i) => storage.getItem(i)!)

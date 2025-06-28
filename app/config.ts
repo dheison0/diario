@@ -17,7 +17,7 @@ function getEnv(name: string, defaultValue?: string): string {
 /* Configurações do website */
 export const WEBSITE_URL =
   "https://www.diarioficialdosmunicipios.org/consulta/ConPublicacaoGeral/ConPublicacaoGeral.php"
-export const UPDATE_INTERVAL = 10 * MINUTE
+export const UPDATE_INTERVAL = 15 * MINUTE
 export const NETWORK_TIMEOUT = 2.5 * SECOND
 export const MIN_RESULTS_PER_PAGE = 10 // Por padrão o site retorna 10 resultados por pagina
 export const CITIES = getEnv("CITIES", "Picos|Corrente").split("|")

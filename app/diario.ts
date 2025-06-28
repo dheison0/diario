@@ -103,11 +103,14 @@ export class Diario {
         const cells = i.querySelectorAll("td")
         return {
           id: cells[cells.length - 1].innerText.trim(),
-          edition: cells[1].innerText.trim(),
           date: cells[3].innerText.trim(),
           category: cells[6].innerText.trim(),
-          document: cells[7].innerText.trim(),
-          file: cells[8].querySelector("a")!.href.split("'")[1].trim(),
+          description: cells[7].innerText.trim(),
+          url: cells[8].querySelector("a")!.href.split("'")[1].trim(),
+          city: null,
+          entity: null,
+          edition: null,
+          sent: false
         }
       })
     }
@@ -141,17 +144,13 @@ export class Diario {
     return result.values()
   }
 
-  /**
-   * Recarrega a página para obter novas opções
-   */
+
+  /** Recarrega a página */
   async reload() {
     await this.page!.reload()
-    await this.page!.waitForLoadState("networkidle")
   }
 
-  /**
-   * Fecha a aba do navegador
-   */
+  /** Fecha a aba do navegador */
   async close() {
     if (this.page === null) return
     await this.page!.close()
