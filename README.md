@@ -14,32 +14,14 @@ Bot criado especialmente para enviar os documentos inseridos no Diário Oficial 
 
 As variáveis podem ser definidas em um arquivo `.env`
 
-- `DB_PATH` Local onde os dados serão salvos;
 - `BOT_TOKEN` Token do bot no Telegram(use o [@BotFather](https://t.me/BotFather) para criar um);
 - `CHAT_ID` Identificador do chat que você deseja receber os documentos(seu ou de algum canal/grupo, use o [@GetIDcnBot](https://t.me/GetIDcnBot))
+- `CITIES` Cidades onde deve ser buscado as informações(separe por `|`), padrão: Sao Raimundo Nonato e Floriano;
+- `ENTITIES` Entidades que você quer ver os documentos(separe por `|`), padrão: prefeitura e camara;
+- `DATABASE_PATH` Local onde os dados serão salvos, defina o nome do arquivo, é um [SQLite3](https://sqlite.org), padrão: memória;
+- `UPDATE_INTERVAL` Intervalo de atualizações completas em minutos, padrão: 30;
+- `SESSION_INTERVAL` Intervalo entre a atualização das cidades em minutos, padrão: 1.
 
-
-## Executar localmente
-
-Instale as dependências do projeto e as do PlayWright:
-
-```bash
-npm install
-npx playwright \
-    install \
-    --with-deps \
-    --only-shell `# Opcional, apenas caso não queria usar a interface gráfica` \
-    chromium
-```
-
-Compile e coloque o projeto para rodar:
-
-```bash
-npm run build
-node dist/index.js
-# Ou
-npm run start
-```
 
 ## Executar com o Docker
 
