@@ -1,10 +1,8 @@
-FROM node:22-slim
+FROM python:3.13-alpine
 WORKDIR /src
 VOLUME [ "/database" ]
-ENV DB_PATH="/database"
-COPY package*.json ./
-RUN npm --rm install && npm cache clean --force
-RUN npx --rm playwright install --with-deps --only-shell chromium
+ENV DATABASE_PATH="/database/diario.db"
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
 COPY . .
-RUN npm run build
-CMD ["node", "dist/index.js"]
+CMD ["python", "-m", "app"]
