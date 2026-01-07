@@ -3,7 +3,7 @@ from time import sleep
 
 import requests
 
-from app import BOT_TOKEN, CHAT_ID
+from app import BOT_TOKEN, CHAT_ID, TOPIC_RELATIONS
 from app.database import Database
 from app.scrapper import Document
 
@@ -30,9 +30,15 @@ def telegram_send(doc: Document):
         <a href="{doc.url}">Fazer download ↗</a>
         """
     )
+    topic_id = TOPIC_RELATIONS.get(doc.category.strip().lower())
     response = requests.get(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-        params={"chat_id": CHAT_ID, "text": message, "parse_mode": "HTML"},
+        params={
+            "chat_id": CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML",
+            "message_thread_id": topic_id,
+        },
     )
     return 300 > response.status_code >= 200
 

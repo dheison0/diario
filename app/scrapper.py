@@ -160,7 +160,6 @@ class Diario:
                     lambda i: i["field"] == "sc_grid_body", response.json()["setValue"]
                 )
             )[0]["value"]
-        open("page.html", "w").write(html)
         soup = BeautifulSoup(html, "lxml")
         try:
             table_rows = soup.select_one(".scGridTabela").select("tr")

@@ -1,3 +1,4 @@
+import logging
 from time import sleep
 
 from app import CITIES, ENTITIES, SESSION_INTERVAL
@@ -10,8 +11,15 @@ def update(db: Database):
     edition = diario.getNewestEdition()
     for cityName in CITIES:
         city = diario.findCity(cityName)
+        if city is None:
+            logging.warning(f"City '{cityName}' not found!")
+            continue
         for entityName in ENTITIES:
             entity = diario.findEntity(entityName)
+            if entity is None:
+                logging.warning(f"Entity '{entityName}' not found!")
+                continue
+            logging.info(f"Updating {entity.name} of {city.name}...")
             diario.sendQuery(SearchFormData(city, entity, edition))
             offset = 0
             while results := diario.loadResults(offset):

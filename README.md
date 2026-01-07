@@ -16,6 +16,8 @@ As variáveis podem ser definidas em um arquivo `.env`
 
 - `BOT_TOKEN` Token do bot no Telegram(use o [@BotFather](https://t.me/BotFather) para criar um);
 - `CHAT_ID` Identificador do chat que você deseja receber os documentos(seu ou de algum canal/grupo, use o [@GetIDcnBot](https://t.me/GetIDcnBot))
+- `TOPIC_RELATIONS` Relacionamento de categorias de documentos com o ID do tópico no grupo
+  - Para utiliza-lo, você primeiro indica qual a categoria de documentos, usa dois pontos(`:`) para separar e indica o ID do tópico, para adicionar mais de um tópico basta separa-los por virgula(exemplo: `licitacao:1234,portaria:4321`)
 - `CITIES` Cidades onde deve ser buscado as informações(separe por `|`), padrão: Sao Raimundo Nonato e Floriano;
 - `ENTITIES` Entidades que você quer ver os documentos(separe por `|`), padrão: prefeitura e camara;
 - `DATABASE_PATH` Local onde os dados serão salvos, defina o nome do arquivo, é um [SQLite3](https://sqlite.org), padrão: memória;

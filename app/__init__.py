@@ -11,9 +11,14 @@ BOT_TOKEN = getenv("BOT_TOKEN")
 if BOT_TOKEN is None:
     raise ValueError("BOT_TOKEN not set!")
 CHAT_ID = getenv("CHAT_ID")
-
 if CHAT_ID is None:
     raise ValueError("CHAT_ID not set!")
+
+TOPIC_RELATIONS_SCHEMA = getenv("TOPIC_RELATIONS", "")
+TOPIC_RELATIONS = {}
+for relations in TOPIC_RELATIONS_SCHEMA.split(","):
+    topic, topic_id = [i.strip() for i in relations.split(":")]
+    TOPIC_RELATIONS[topic] = topic_id
 
 MINUTE = 60
 

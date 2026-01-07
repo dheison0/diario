@@ -8,5 +8,11 @@
         "source.unusedImports": "always",
         "source.organizeLinkDefinitions": "always",
         "source.organizeImports": "always"
-    }
+    },
+    "cSpell.words": [
+        "Camara",
+        "diario",
+        "Diario",
+        "dotenv"
+    ]
 }
