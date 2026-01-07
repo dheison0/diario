@@ -21,12 +21,16 @@ def update(db: Database):
                 continue
             logging.info(f"Updating {entity.name} of {city.name}...")
             diario.sendQuery(SearchFormData(city, entity, edition))
-            offset = 0
-            while results := diario.loadResults(offset):
-                [db.insertDocument(doc) for doc in results]
-                if len(results) < 10:
+            results = {}
+            while response := diario.loadResults(len(results)):
+                # Sometimes server sends the same response as if it was with offset=0 even it being bigger than 10
+                if response[0].id in results:
                     break
-                offset += len(results)
+                results.update({i.id: i for i in response})
+                # Server always sends a maximum amount of items equals 10, if it response is less -> there's no more items
+                if len(response) < 10:
+                    break
                 sleep(2)
+            [db.insertDocument(doc) for doc in results.values()]
             sleep(5)
         sleep(SESSION_INTERVAL)
