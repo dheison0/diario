@@ -56,6 +56,25 @@ AI_MODEL_PROMPT_RELATIONS["licitacao"] = (
         "Qual o valor do contrato(se houver).",
     ),
 )
+AI_MODEL_PROMPT_RELATIONS["decreto"] = (
+    GEMINI_SMALL_MODEL,
+    create_ai_prompt("O que foi decretado."),
+)
+AI_MODEL_PROMPT_RELATIONS["lei"] = (
+    GEMINI_SMALL_MODEL,
+    create_ai_prompt("O que a lei define."),
+)
+AI_MODEL_PROMPT_RELATIONS["edital"] = (
+    GEMINI_BASE_MODEL,
+    create_ai_prompt(
+        "Qual o objetivo do edital.",
+        "Se for um edital de concurso, quais são os cargos e carga horária.",
+        "Se for um edital de seletivo, quais são os cargos, carga horária e quanto tempo dura o contrato.",
+        "Se for um edital de licitação, qual o objetivo da licitação.",
+        "Se for um edital de chamamento, para que serve.",
+        "Caso seja outro tipo de edital, descreva brevemente o que é ele descreve.",
+    ),
+)
 AI_MODEL_PROMPT_RELATIONS["*"] = (
     GEMINI_BASE_MODEL,
     create_ai_prompt(
