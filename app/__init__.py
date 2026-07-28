@@ -32,8 +32,8 @@ DATABASE_PATH = getenv("DATABASE_PATH", ":memory:")
 CITIES = getenv("CITIES", "Sao Raimundo Nonato|Floriano").split("|")
 ENTITIES = getenv("ENTITIES", "Prefeitura|Camara").split("|")
 BASE_URL = "https://www.diarioficialdosmunicipios.org/consulta/ConPublicacaoGeral/ConPublicacaoGeral.php"
-GEMINI_BASE_MODEL = getenv("GEMINI_BASE_MODEL", "gemini-2.5-flash")
-GEMINI_SMALL_MODEL = getenv("GEMINI_SMALL_MODEL", "gemini-3.1-flash-lite-preview")
+GEMINI_BASE_MODEL = getenv("GEMINI_BASE_MODEL", "gemini-3.5-flash")
+GEMINI_SMALL_MODEL = getenv("GEMINI_SMALL_MODEL", "gemini-3.5-flash-lite")
 
 logging.basicConfig(
     level=logging.DEBUG if getenv("DEBUG") else logging.INFO,

@@ -3,6 +3,7 @@ from textwrap import dedent
 from time import sleep
 
 import requests
+from google import genai
 
 from app import (
     BOT_TOKEN,
@@ -14,7 +15,6 @@ from app import (
 )
 from app.database import Database
 from app.scrapper import Document
-from google import genai
 
 BASE_PROMPT = """
 Siga exatamente estes passos:
@@ -30,8 +30,13 @@ Regras de resposta:
   - Seja breve e direto ao ponto, sem rodeios
 
 Formatação obrigatória:
-  - Use apenas as seguintes tags HTML: <b>, <i>, <u>, <a>, <blockquote>
-  - Não use markdown
+  - Você está limitado ao uso das tags HTML:
+    - <b> (negrito)
+    - <i> (itálico)
+    - <u> (sublinhado)
+    - <a> (link simples)
+    - <blockquote> (citações)
+  - Não use markdown ou qualquer outra forma de estilização sem ser as tags as quais você está limitado!
 """
 
 create_ai_prompt = lambda *args: BASE_PROMPT.replace(
@@ -42,37 +47,46 @@ AI_MODEL_PROMPT_RELATIONS = {}
 AI_MODEL_PROMPT_RELATIONS["portaria"] = (
     GEMINI_SMALL_MODEL,
     create_ai_prompt(
-        "Quem foi contratado.",
-        "Qual cargo ira ocupar.",
-        "Qual orgão contratou.",
+        "Quem foi contratado?",
+        "Qual cargo ira ocupar?",
+        "Qual órgão contratou?",
     ),
 )
 AI_MODEL_PROMPT_RELATIONS["licitacao"] = (
     GEMINI_SMALL_MODEL,
     create_ai_prompt(
-        "Qual o objetivo da licitação.",
-        "Quem foi o licitante.",
-        "Qual empresa foi a vencedora(se houver).",
-        "Qual o valor do contrato(se houver).",
+        "Qual o objetivo da licitação?",
+        "Quem foi o licitante?",
+        "Qual empresa foi a vencedora(se houver)?",
+        "Qual o valor do contrato(se houver)?",
     ),
 )
 AI_MODEL_PROMPT_RELATIONS["decreto"] = (
     GEMINI_SMALL_MODEL,
-    create_ai_prompt("O que foi decretado."),
+    create_ai_prompt("O que foi decretado?"),
 )
 AI_MODEL_PROMPT_RELATIONS["lei"] = (
     GEMINI_SMALL_MODEL,
-    create_ai_prompt("O que a lei define."),
+    create_ai_prompt("O que a lei define?"),
 )
 AI_MODEL_PROMPT_RELATIONS["edital"] = (
     GEMINI_BASE_MODEL,
     create_ai_prompt(
-        "Qual o objetivo do edital.",
+        "Qual o objetivo do edital?",
         "Se for um edital de concurso, quais são os cargos e carga horária.",
         "Se for um edital de seletivo, quais são os cargos, carga horária e quanto tempo dura o contrato.",
         "Se for um edital de licitação, qual o objetivo da licitação.",
         "Se for um edital de chamamento, para que serve.",
-        "Caso seja outro tipo de edital, descreva brevemente o que é ele descreve.",
+        "Caso seja outro tipo de edital, descreva brevemente sobre o que ele trata.",
+    ),
+)
+AI_MODEL_PROMPT_RELATIONS["contrato"] = (
+    GEMINI_SMALL_MODEL,
+    create_ai_prompt(
+        "Quem foi contratado?",
+        "Quem contratou?",
+        "Quais os valores envolvidos(caso existam)?",
+        "Qual a validade do contrato?",
     ),
 )
 AI_MODEL_PROMPT_RELATIONS["*"] = (
@@ -80,7 +94,7 @@ AI_MODEL_PROMPT_RELATIONS["*"] = (
     create_ai_prompt(
         "O que há de mais importante nesse documento?",
         "Quais os valores envolvidos(se houver)?",
-        "Quem são as partes envolvidas(não precisa mencionar a prefeitura, apenas orgãos dela)(se houver)?",
+        "Quem são as partes envolvidas(não precisa mencionar a prefeitura, apenas órgãos dela - caso mencionados nos documentos)?",
     ),
 )
 
@@ -95,8 +109,7 @@ def shf(text: str) -> str:
 
 def create_basic_summary(doc: Document) -> tuple[str, int]:
     return (
-        dedent(
-            f"""
+        dedent(f"""
             <b>{shf(doc.category)} - {shf(doc.entity)} - {shf(doc.city)}</b>
 
             <blockquote>{shf(doc.description)}</blockquote>
@@ -106,8 +119,7 @@ def create_basic_summary(doc: Document) -> tuple[str, int]:
             <b>Date:</b> <i>{shf(doc.date)}</i>
 
             <a href="{doc.url}">Fazer download ↗</a>
-            """
-        ),
+            """),
         0,
     )
 

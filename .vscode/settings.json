@@ -13,6 +13,9 @@
         "Camara",
         "diario",
         "Diario",
-        "dotenv"
+        "dotenv",
+        "gemini",
+        "genai",
+        "licitacao"
     ]
 }
