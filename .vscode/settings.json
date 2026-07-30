@@ -16,6 +16,10 @@
         "dotenv",
         "gemini",
         "genai",
-        "licitacao"
-    ]
+        "licitacao",
+        "pycache",
+        "venv"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic"
 }

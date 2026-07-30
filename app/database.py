@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from typing import Any
 
 from app.scrapper import Document
 
@@ -26,7 +27,7 @@ class Database:
         logging.debug("Creating basic database structure if it doesn't exists...")
         self._exec(db_structure)
 
-    def _exec(self, query: str, *args: list[any]) -> list[any]:
+    def _exec(self, query: str, *args: Any) -> list[Any]:
         logging.debug("Creating cursor and running query...")
         cursor = self.db.cursor()
         cursor.execute(query, args)
